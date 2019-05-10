@@ -1,0 +1,117 @@
+<html>
+<body>
+<pre>
+<h1>礦ision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: μVision V5.21.1.0
+Copyright (C) 2016 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: 55 Administrator, 55, LIC=03CX7-EH5ZD-ZWI2V-PP222-AZNPF-I3WIV
+ 
+Tool Versions:
+Toolchain:       MDK-ARM Plus  Version: 5.21a
+Toolchain Path:  C:\Keil_v5\ARM\ARMCC\Bin
+C Compiler:      Armcc.exe V5.06 update 3 (build 300)
+Assembler:       Armasm.exe V5.06 update 3 (build 300)
+Linker/Locator:  ArmLink.exe V5.06 update 3 (build 300)
+Library Manager: ArmAr.exe V5.06 update 3 (build 300)
+Hex Converter:   FromElf.exe V5.06 update 3 (build 300)
+CPU DLL:         SARMCM3.DLL V5.21a
+Dialog DLL:      DCM.DLL V1.13.8.0
+Target DLL:      Segger\JL2CM3.dll V2.99.23.0
+Dialog DLL:      TCM.DLL V1.14.14.0
+ 
+<h2>Project:</h2>
+E:\工作\033太阳能AP项目\AP_RF4\MDK-ARM\AP_RF4.uvprojx
+Project File Date:  05/08/2019
+
+<h2>Output:</h2>
+*** Using Compiler 'V5.06 update 3 (build 300)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
+Build target 'AP_RF4'
+compiling gprs_comm.c...
+..\User\GPRS\gprs_hal.h(8): warning:  #1295-D: Deprecated declaration grps_power_off - give arg types
+  void grps_power_off();
+..\User\GPRS\gprs_hal.h(10): warning:  #1295-D: Deprecated declaration grps_power_on - give arg types
+  void grps_power_on();
+..\User\Debug_uart\debug_uart.h(9): warning:  #1295-D: Deprecated declaration print_version - give arg types
+  void print_version();
+..\User\rf_data_handle\rf_data_handle.h(275): warning:  #1295-D: Deprecated declaration sensor_event_and_stat_hanle - give arg types
+  void sensor_event_and_stat_hanle();
+..\User\GPRS\gprs_4g_app.h(149): warning:  #1295-D: Deprecated declaration gprs_4g_task_poll - give arg types
+  void gprs_4g_task_poll();
+..\User\GPRS\gprs_4g_app.h(150): warning:  #1295-D: Deprecated declaration load_sys_param_to_use_table - give arg types
+  void load_sys_param_to_use_table();
+..\User\GPRS\gprs_comm.c(178): warning:  #1295-D: Deprecated declaration send_gprs_200_ - give arg types
+  void send_gprs_200_();
+..\User\GPRS\gprs_comm.c(191): warning:  #68-D: integer conversion resulted in a change of sign
+  		return -1;
+..\User\GPRS\gprs_comm.c(205): warning:  #68-D: integer conversion resulted in a change of sign
+  		return -1;		
+..\User\GPRS\gprs_comm.c(301): warning:  #177-D: variable "i" was declared but never referenced
+  	int i;
+..\User\GPRS\gprs_comm.c(363): warning:  #940-D: missing return statement at end of non-void function "gprs_send_data_flag"
+  }
+..\User\GPRS\gprs_comm.c(636): warning:  #175-D: subscript out of range
+  			case 
+PRS_CMD_CONNECT_OK_2 :gprs_stat.con_client[2].connect_ok = 1;break;
+..\User\GPRS\gprs_comm.c(651): warning:  #175-D: subscript out of range
+  			case 
+PRS_CMD_CONNECT_FAIL_2 :gprs_stat.con_client[2].connect_fail_times += 1; gprs_at_tcp_close(2);if(gprs_stat.con_client[2].connect_fail_times>GPRS_CONNECT_FAIL_TIMEOUT)gprs_reboot();break;
+..\User\GPRS\gprs_comm.c(651): warning:  #175-D: subscript out of range
+  			case 
+PRS_CMD_CONNECT_FAIL_2 :gprs_stat.con_client[2].connect_fail_times += 1; gprs_at_tcp_close(2);if(gprs_stat.con_client[2].connect_fail_times>GPRS_CONNECT_FAIL_TIMEOUT)gprs_reboot();break;
+..\User\GPRS\gprs_comm.c(662): warning:  #175-D: subscript out of range
+  			case 
+PRS_CMD_CONNECT_CLOSED_2 : gprs_stat.con_client[2].connect_ok = 0;  break;
+..\User\GPRS\gprs_comm.c(387): warning:  #177-D: variable "data_len" was declared but never referenced
+  		unsigned short *data_len;
+..\User\GPRS\gprs_comm.c(740): warning:  #550-D: variable "n1_data_length" was set but never used
+  	int n1_data_length = 0;
+..\User\GPRS\gprs_comm.c(800): warning:  #550-D: variable "n1_data_length" was set but never used
+  	int n1_data_length = 0;
+..\User\GPRS\gprs_comm.c(893): warning:  #177-D: variable "length" was declared but never referenced
+  	unsigned short length = 0;
+..\User\GPRS\gprs_comm.c(894): warning:  #177-D: variable "data" was declared but never referenced
+  	uint8_t data = 0;
+..\User\GPRS\gprs_comm.c(895): warning:  #177-D: variable "i" was declared but never referenced
+  	int i;
+..\User\GPRS\gprs_comm.c(896): warning:  #177-D: variable "begin" was declared but never referenced
+  	int begin;
+..\User\GPRS\gprs_comm.c(897): warning:  #177-D: variable "ret" was declared but never referenced
+  	char ret = 0;
+..\User\GPRS\gprs_comm.c(898): warning:  #177-D: variable "p_gprs_data_buff" was declared but never referenced
+  	uint8_t *p_gprs_data_buff = gprs_data_buff;
+..\User\GPRS\gprs_comm.c(899): warning:  #177-D: variable "p_n1_data_head" was declared but never referenced
+  	strcut_n1_data_head *p_n1_data_head;
+..\User\GPRS\gprs_comm.c(995): warning:  #177-D: variable "which_client" was declared but never referenced
+  	static int which_client = 0;
+..\User\GPRS\gprs_comm.c(996): warning:  #177-D: variable "delay" was declared but never referenced
+  	int delay = 0;
+..\User\GPRS\gprs_comm.c(1356): warning:  #177-D: variable "pd" was declared but never referenced
+  	unsigned char *pd = (unsigned char *)pdata;
+..\User\GPRS\gprs_comm.c: 28 warnings, 0 errors
+linking...
+Program Size: Code=87264 RO-data=5008 RW-data=1192 ZI-data=250592  
+FromELF: creating hex file...
+After Build - User command #1: C:/Keil_v5/ARM/ARMCC/bin/fromelf.exe --bin -o ./AP_RF4/AP_RF4.bin ./AP_RF4/AP_RF4.axf
+"AP_RF4\AP_RF4.axf" - 0 Error(s), 28 Warning(s).
+
+<h2>Software Packages used:</h2>
+
+Package Vendor: ARM
+                http://www.keil.com/pack/ARM.CMSIS.5.0.1.pack
+                ARM::CMSIS:CORE:5.0.1
+                CMSIS (Cortex Microcontroller Software Interface Standard)
+   * Component: CORE Version: 5.0.1
+
+<h2>Collection of Component include folders:</h2>
+  E:\工作\033太阳能AP项目\AP_RF4\MDK-ARM\RTE
+  C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.1\CMSIS\Include
+  C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.11.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include
+
+<h2>Collection of Component Files used:</h2>
+
+   * Component: ARM::CMSIS:CORE:5.0.1
+Build Time Elapsed:  00:00:08
+</pre>
+</body>
+</html>

@@ -1,0 +1,6 @@
+-c --cpu Cortex-M4.fp -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ../Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ..\User\ToN1_uart -I ..\User\GPRS -I ..\User -I ..\User\RF4 -I ..\User\Debug_uart -I ..\User\Ap_param --C99
+-IE:\นคื๗\AF_2RF\AP_RF4\MDK-ARM\RTE
+-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.1\CMSIS\Include
+-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.11.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include
+-D__UVISION_VERSION="521" -D_RTE_ -DSTM32F429xx -DUSE_HAL_DRIVER -DSTM32F429xx --C99
+-o ap_rf4\update_s_rp.o --omf_browse ap_rf4\update_s_rp.crf --depend ap_rf4\update_s_rp.d --feedback "AP_RF4\AP_RF4.fed" "..\Src\update_s_rp.c"

@@ -1,0 +1,658 @@
+/*
+================================================================================================
+
+	Filename:		snp.h
+	Version:		1.0
+	Last updated:	
+					1:	2011-10-27, 固件版本v4.0
+
+	Description:	SNP协议包结构和相关定义.
+================================================================================================
+*/
+
+#ifndef _SNP_H_
+#define _SNP_H_
+
+
+
+
+#define u8_t unsigned char
+#define u16_t unsigned short
+#define u32_t unsigned int
+
+//============================================================================================//
+
+//
+// 常数定义.
+//
+
+#define SNP_REF_TIME_US					( 1000.0 / 32.768 )	// SNP协议参考时间.
+
+//#define SNP_MUL                         1//LP-ADD-2015-01-06
+//#define SNP_SLOTS_PER_TIME_FRAME		(SNP_MUL*64u)					// 每个'Time Frame'的时隙数.
+//#define SNP_TIME_FRAME_MS				(SNP_MUL*125.0)				// SNP协议时间帧长度.
+//#define SNP_TIME_FRAME_PER_SEC			(SNP_MUL*8ul)					// 一秒内的时间帧数量.
+
+#define SNP_SLOTS_PER_TIME_FRAME		64u					// 每个'Time Frame'的时隙数.
+#define SNP_TIME_FRAME_MS				125.0				// SNP协议时间帧长度.
+#define SNP_TIME_FRAME_PER_SEC			8ul					// 一秒内的时间帧数量.
+
+// 同步误差.
+#define SNP_SYNC_ERROR_SMALL_US			( 1.0 * SNP_REF_TIME_US )	// 小的同步允许误差.
+#define SNP_SYNC_ERROR_BIG_US			( 2.0 * SNP_REF_TIME_US )	// 大的同步允许误差.
+#define SNP_SYNC_ERROR_LIMIT_SMALL_US	( 2.0 * SNP_SYNC_ERROR_SMALL_US + SNP_REF_TIME_US )	// 小的同步误差限制值.
+#define SNP_SYNC_ERROR_LIMIT_BIG_US		( 3.0 * SNP_SYNC_ERROR_BIG_US + SNP_REF_TIME_US )	// 大的同步误差限制值.
+
+// 
+#define SNP_DOWN_SLOT_OFFSET_NOM		6u			// 每个'Time Frame'内首先可以给节点(DOT or RP)使用的时隙序号,
+													// 节点传输间隔/潜伏时间大于等于'Time Frame'(125ms)时使用.
+#define SNP_DOWN_SLOT_OFFSET_FAST		4u			// 每个'Time Frame'内首先可以给节点(DOT or RP)使用的时隙序号,
+													// 节点传输间隔/潜伏时间小于'Time Frame'(125ms)时使用.
+
+#define SNP_RP_UP_SLOT_OFFSET			2u			// RP上行时隙转发的间隔(RX->TX).
+#define SNP_RP_UP_SLOT_STEP				4u			// RP两个上行时隙的间隔(RX->RX or TX->TX).
+
+// 
+#define SNP_SENSOR_MODE_A				0x64u		// Sends raw Z axis magnetic Sensor data
+#define SNP_SENSOR_MODE_B				0x65u		// Vehicle count stations
+#define SNP_SENSOR_MODE_D				0x67u		// Sends raw X, Y, and Z axes magnetic Sensor data
+#define SNP_SENSOR_MODE_E				0x68u		// Suspend detection; conserve power
+#define SNP_SENSOR_MODE_F				0x69u		// Combination of Mode B and Mode D - Sends raw X, Y,
+													// and Z axes magnetic Sensor data while a vehicle is
+													// near the Sensor
+#define SNP_SENSOR_MODE_G				0x6Au		// Sends magnetic signature data
+
+#define SNP_SENSOR_MODE_bm				0xF0u		// Sensor Mode bit-mask
+#define SNP_SENSOR_MODE_BAR_bm			0x0Fu		// Stop Bar Number bit-mask
+#define SNP_SENSOR_MODE_BAR				0x70u		// Stop Bar Mode
+#define SNP_SENSOR_MODE_BAR_0			( SNP_SENSOR_MODE_BAR + 0u )	// Stop Bar 0
+#define SNP_SENSOR_MODE_BAR_1			( SNP_SENSOR_MODE_BAR + 1u )	// Stop Bar 1
+#define SNP_SENSOR_MODE_BAR_2			( SNP_SENSOR_MODE_BAR + 2u )	// Stop Bar 2
+#define SNP_SENSOR_MODE_BAR_3			( SNP_SENSOR_MODE_BAR + 3u )	// Stop Bar 3
+#define SNP_SENSOR_MODE_BAR_4			( SNP_SENSOR_MODE_BAR + 4u )	// Stop Bar 4
+#define SNP_SENSOR_MODE_BAR_5			( SNP_SENSOR_MODE_BAR + 5u )	// Stop Bar 5
+#define SNP_SENSOR_MODE_BAR_6			( SNP_SENSOR_MODE_BAR + 6u )	// Stop Bar 6
+#define SNP_SENSOR_MODE_BAR_7			( SNP_SENSOR_MODE_BAR + 7u )	// Stop Bar 7
+#define SNP_SENSOR_MODE_BAR_8			( SNP_SENSOR_MODE_BAR + 8u )	// Stop Bar 8
+#define SNP_SENSOR_MODE_BAR_9			( SNP_SENSOR_MODE_BAR + 9u )	// Stop Bar 9
+#define SNP_SENSOR_MODE_BAR_10			( SNP_SENSOR_MODE_BAR + 10u )	// Stop Bar 10
+#define SNP_SENSOR_MODE_BAR_11			( SNP_SENSOR_MODE_BAR + 11u )	// Stop Bar 11
+#define SNP_SENSOR_MODE_BAR_12			( SNP_SENSOR_MODE_BAR + 12u )	// Stop Bar 12
+#define SNP_SENSOR_MODE_BAR_13			( SNP_SENSOR_MODE_BAR + 13u )	// Stop Bar 13
+#define SNP_SENSOR_MODE_BAR_14			( SNP_SENSOR_MODE_BAR + 14u )	// Stop Bar 14
+#define SNP_SENSOR_MODE_BAR_15			( SNP_SENSOR_MODE_BAR + 15u )	// Stop Bar 15
+
+// v4.0新增两个模式
+#define SNP_SENSOR_MODE_C				0x66u		// Vehicle re-identification mode for
+													// arterial travel time applications
+#define SNP_SENSOR_MODE_H				0x6Bu		// High accuracy speed mode
+
+
+//============================================================================================//
+
+//
+// 包结构定义.
+//
+
+// 结构元素间不填充(PAD)任何字节用于对齐.
+#pragma pack(1)
+#pragma anon_unions
+
+// SNP协议包头结构.
+typedef struct _SNP_PHR_t
+{
+	u8_t		ucSize;			// sizeof(MPDU) or sizeof(Packet).
+	u16_t		uiFcf;			// FCF
+	u8_t		ucSerNr;		// SN
+	u16_t		uiDevId;		// Device(Sensor or Repeater) ID.
+	//	#define SNP_DEVICE_ID_AP			0xFFF0u		// AP(Access Point) ID.
+    #define SNP_DEVICE_ID_AP			0x0002u		// AP(Access Point) ID.
+	
+	u8_t		ucType;			// 类型(Packet type).
+	
+	//ucType bit0 ~ bit3
+		#define	SNP_PACKET_TYPE_TEST			( 1u )		// 测试包.
+		#define	SNP_PACKET_TYPE_CFG				( 2u )		// 配置
+		#define	SNP_PACKET_TYPE_WORK			( 3u )		// 工作
+		#define	SNP_PACKET_TYPE_ACK				( 4u )		// ACK
+		#define	SNP_PACKET_TYPE_UF				( 5u )		// 升级包
+		#define	SNP_PACKET_TYPE_SEN_STATE		( 6u )		// 检测器状态包
+		#define	SNP_PACKET_TYPE_RP_STATE		( 7u )		// RP状态包
+		#define	SNP_PACKET_TYPE_EVENT			( 8u )		// 事件包
+		#define	SNP_PACKET_TYPE_SEN_UF_STATE	( 9u )		// 检测器升级状态包
+		#define	SNP_PACKET_TYPE_RP_UF_STATE		( 10u )		// RP升级状态包
+		
+	//ucType bit4 0_无参数 1_有参数
+	
+	//ucType bit5 bit6  AP天线
+				
+	u8_t		ucSensorMode;			// 类型(Packet type).
+	
+		#define SNP_PACKET_TYPE_SEN_A		SNP_SENSOR_MODE_A
+		#define SNP_PACKET_TYPE_SEN_B		SNP_SENSOR_MODE_B
+		#define SNP_PACKET_TYPE_SEN_D		SNP_SENSOR_MODE_D
+		#define SNP_PACKET_TYPE_SEN_E		SNP_SENSOR_MODE_E
+		#define SNP_PACKET_TYPE_SEN_F		SNP_SENSOR_MODE_F
+		#define SNP_PACKET_TYPE_SEN_G		SNP_SENSOR_MODE_G
+		
+// v4.0新增两个无线数据包类型
+		#define SNP_PACKET_TYPE_SEN_C		SNP_SENSOR_MODE_C
+		#define SNP_PACKET_TYPE_SEN_H		SNP_SENSOR_MODE_H
+		
+} SNP_PHR_t;
+
+
+
+// 恢复默认设置.
+#pragma pack()
+
+// SNP协议同步包结构.
+typedef struct _SNP_SYNC_PACKET_t
+{
+	SNP_PHR_t	sPhr;
+	
+	u8_t		ucCurSecNr;		// 0x8	-	主机当前时刻(秒) mod 'ucSecPeriod'
+	u8_t		ucCtrlBm;		// 0x9	-	
+		#define SNP_CTRL_BM_NSEC			( 1u<<0u )	// BIT.0 = 0:	在'秒'边界.
+		#define SNP_CTRL_BM_BIT1			( 1u<<1u )	// BIT.1 = 1:	???
+		#define SNP_CTRL_BM_REQ_ACK			( 1u<<2u )	// BIT.2 = 1:	检测器期望AP应答,
+														//				参考'Page 170: Enabling Expectation of Acknowledgments'.
+		#define SNP_CTRL_BM_FAST_CAL		( 1u<<3u )	// BIT.3 = 1:	始终使用快速校准同步误差.
+														//		 = 0:	允许使用较慢校准同步误差.
+		#define SNP_CTRL_BM_BIT4			( 1u<<4u )	// BIT.4 = 1:	允许大的同步误差.
+		#define SNP_CTRL_BM_TANDEM			( 1u<<5u )	// BIT.5 = 1:	有串联(Tandem)的Repeater.
+														//		 = 0:	没有串联(Tandem)的Repeater.
+														
+		#define SNP_CTRL_BM_ACK				( 1u<<6u )  //级别 0:AP             1:1级RP          2：2级RP          3：3级RP 
+//		#define SNP_CTRL_BM_ACK				( 1u<<7u )		
+
+		
+	union{
+		u16_t	uiRemainSlot;							// 0xA	-	不在'秒'边界时的同步包用, 解析为: 当前'秒'周期内剩余的时隙数.
+		u16_t	uiPathInfo;								// 0xA	-	在'秒'边界时的同步包用, 解析为:
+														//			低字节为从主机发出同步/数据包到收到下端设备的应答包所额外增加的时隙数,
+														//			高字节为从主机发出同步/数据包到下端设备收到这个包所间隔的时隙数.
+		 };
+
+	u8_t		uiChangeCnt;							// 0xC	-	本机与AP之间的设备的无线参数更改计数, 用于校验后续同步包的无线路径或无线参数的一致性.
+       
+	u8_t sensor_param[6];
+//// 大部分参数的说明可参考'Configuring Access Points'章节.
+//	struct{						// 0xD
+//		u8_t	bmCountReCalTo		:	3,		// 模式'Count'重校准超时, 参考'blCountReCalToExt'.
+//				bmFixedReport		:	1,		// 报告间隔固定, 参考'Page 162: Enabling Synchronized Reporting'.
+//				bmTxInterval		:	3,		// RF传输间隔参数索引, 参考'blTxIntervalSmall'.
+//		#define SNP_TX_INTERVAL_125MS		( 1u )		// Transmit Interval: 125 ms
+//		#define SNP_TX_INTERVAL_256MS		( 2u )		// Transmit Interval: 256 ms
+//				bmOnlyEventOn		:	1;		// 只报告'ON'事件, 参考'Page 163'.
+//	};
+//	struct{						// 0xE 
+//		u8_t	bmDetectZ			:	4,		// 参考'Page 164'.
+//				bmUnDetectZ			:	4;		// 参考'Page 164'.
+//	};
+//	struct{						// 0xF
+//		u8_t	bmHoldover			:	4,		// 参考'Page 165'.
+//				bmUnDetectX			:	4;		// 参考'Page 164'.
+//	};
+//	struct{						// 0x10
+//		u8_t	bmExtraLatency		:	3,		// 参考'Page 163: Configuring Extra Latency'.
+//				bmRes_17_3			:	1,		// ??? HighSensitivity
+//				bmWdTimeout			:	3,		// 参考'Page 162: Setting a Watchdog Timeout'.
+//				bmSwapXY			:	1;		// 交换X/Y轴, 参考'Page 165'.
+//	};
+//	struct{						// 0x11
+//		u8_t	bmOnSetFilter		:	3,		// 检测'ON'事件时的滤波数, 参考'Page 164'.
+//				bmRes_18_3			:	1,		// 没有使用.
+//				bmEventCtrl			:	4;		// 控制事件报告队列, 参考'Page 162'.
+//	};
+//	struct{						// 0x12
+//		u8_t	bmBarReCalTo		:	2,		// 模式'Stop Bar'重校准超时, =0: 使用模式'Count'的参数.
+//				bmSlotCfg			:	2,		// RP时隙配置, 参考'Page 62: Table 12'.
+//		#define SNP_USE_SLOT_CFG0			( 2u )
+//		#define SNP_USE_SLOT_CFG1			( 3u )
+//				blTxIntervalSmall	:	1,		// 如果这个位为'1', 'bmTxInterval'域对应小的间隔范围.
+//				blCountReCalToExt	:	1,		// 如果这个位为'1', 'bmCountReCalTo'域对应扩展范围.
+//				bmRes_19_6			:	2;		// 没有使用.
+//	};
+
+	u16_t uiPoll;              					// 0x13  - 轮询ID  检测器广播ID ：0xFFFE   RP无广播ID
+	u8_t  uiCmd;								// 0x15  - 命令子 是参数修改 或 通道修改 
+	
+	struct{										// 0x16  - 跟的同步包级别
+		u8_t	uiGrade:2		;		
+		u8_t		uiChannel:5;					//	    -  设置的通道
+	 }; 
+	 
+	u8_t  		uiSlot;							// 0x17
+	u16_t       uiBindId;						// 0x18   - 增加路口绑定ID，随状态包发送
+	u16_t       uiSlotStateL;					// 0x1A   - 开关时间槽低16
+	u16_t       uiSlotStateM;					// 0x1C   - 开关时间槽中16
+	u16_t       uiSlotStateH;					// 0x1E   - 开关时间槽高16
+	u8_t		uiCrc;							// 0x20
+} SNP_SYNC_PACKET_t;
+
+// AP应答包结构.
+typedef struct _SNP_AP_ACK_PACKET_t
+{
+	SNP_PHR_t	sPhr;
+	
+	u32_t		ulSlotBm;						// 每一位对应于当前应答包时隙序号紧接着的时隙序号, LSB->MSB,
+												// 本数据域指定的时隙序号定义为AP接收数据包时的值,
+												// Bit.x = '1': 应答时隙序号为<CurSlotNr+1+x>的时隙(节点).
+	u8_t		aucSerNr[16u];					// AP应答时隙(节点)等于本序列号的数据包, 时隙由'ulSlotBm'域指定,
+												// 本数据域可变, 等于'ulSlotBm'的Bit='1'数量.
+} SNP_AP_ACK_PACKET_t;
+
+
+
+// SNP协议检测器状态包结构.
+typedef struct _SNP_STATE_PACKET_SENSOR_t
+{
+	SNP_PHR_t	sPhr;
+	
+	u16_t		uiFwVer;			// 0x8	-	当前固件版本.
+	u16_t		uiHwVer;			// 0xA	-	本机硬件版本.
+	u8_t		ucVolt;				// 0xC	-	本机的电源电压测量值: ADC / 16.
+	u16_t		uiRpId;				// 0xD	-	中继器的'RF-ID'.  由上一级填写
+	u16_t		uiSubData;			// 0xF	-	代替包数据, 成功编程FLASH的次数.
+
+	u32_t		ulFactoryId;		// 0x11	-	本机的'factory ID'. 
+	u8_t		uiRssi;				// 0x15 -   检测器收到的RF信号参数，随状态包发送
+	u8_t        uiQuality;			// 0x16 -   链路质量  + 1bit CRC
+	
+	struct{							// 0x17
+			u8_t	uiGrade:2	;	// 检测器跟的同步包级别 与上一级的级别一致		
+			u8_t uiChannel:5;		
+		 };
+	
+	u8_t        uiSlot;				// 0x18
+	u16_t       uiBindId;			// 0x19
+	u8_t		uiCrc;				// 0x1B
+    
+} SNP_STATE_PACKET_SENSOR_t;
+
+
+// SNP协议RP状态包结构.
+typedef struct _SNP_STATE_PACKET_RP_t
+{
+	SNP_PHR_t	sPhr;
+	
+	u16_t		uiFwVer;			// 0x8	-	当前固件版本.
+	u16_t		uiHwVer;			// 0xA	-	本机硬件版本.
+	u8_t		ucVolt;				// 0xC	-	本机的电源电压测量值: ADC / 16.
+	u16_t		uiRpId;				// 0xD	-	中继器的'RF-ID'.
+	u16_t		uiSubData;			// 0xF	-	代替包数据, 成功编程FLASH的次数.
+
+	u16_t		uiRssi;				// 0x11 - 高8位上行 低8位下行
+	u16_t        uiQuality;			// 0x13 - 链路质量  + 1bit CRC  高8位上行 低8位下行
+	
+	struct{							// 0x15 - 跟的同步包级别
+			u8_t	uiGrade:2	;			
+			u8_t		uiChannel:5;    //      - 当前的通道
+		 };
+	
+	u8_t        uiSlot;				// 0x16
+	u16_t       uiBindId;			// 0x17
+	u16_t       uiSlotStateL;			// 0x19 - 开关时间槽低16
+	u16_t       uiSlotStateM;			// 0x1B - 开关时间槽中16
+	u16_t       uiSlotStateH;			// 0x1D - 开关时间槽高16
+	u8_t		uiCrc;				// 0x1F
+    
+} SNP_STATE_PACKET_RP_t;
+
+
+// SNP协议更新固件数据包结构.
+#pragma pack(1)
+typedef struct _SNP_UF_DATA_PACKET_t  //mod by hecw 2014-10-22
+{
+	SNP_PHR_t	sPhr;
+	
+	u32_t		uiAddress;			// 0x08	-	编程FLASH的地址.//mod u16_t -> u32_t by hecw 2014-10-22
+    u16_t        CrcSum;             // CrcSum = (u8_t)(uiAddress + auiBuffer[16u])//mod lup  2015-01-23
+	u16_t		auiBuffer[16u];		// 0x0A	-	每次编程32字节.
+} SNP_UF_DATA_PACKET_t;
+#pragma pack()
+
+
+
+// Mode = A: Sends raw Z axis magnetic Sensor data
+typedef struct _SNP_SEN_MODE_A_PACKET_t
+{
+	SNP_PHR_t	sPhr;
+	
+	u16_t		uiBaseZ;			// 0x08 -	第一个数据, 作为后续数据的基值.
+	u8_t		aucDeltaZ[16u];		// 0x0A -	与基值的偏差值.
+} SNP_SEN_MODE_A_PACKET_t;
+
+// 事件信息.
+typedef union _SNP_EVENT_t
+{
+	u16_t		uiAll;
+	struct
+	{
+		u16_t	bmMs	:	10,		// 毫秒数, 'SNP_REF_TIME_US'的32倍: 0.9765625ms.
+				bmSec	:	5,		// 秒数.
+				blIsOn	:	1;		// 事件'ON'/'OFF', 'ON' = 1.
+	};
+} SNP_EVENT_t;
+
+// Mode = B: Vehicle count stations
+// 模式'Count'和'Stop Bar'公用数据包.
+typedef struct _SNP_SEN_MODE_B_PACKET_t
+{
+	SNP_PHR_t	sPhr;
+	
+	SNP_EVENT_t	asEvent[16u];		// 0x08 -	事件信息队列.
+} SNP_SEN_MODE_B_PACKET_t;
+
+// Mode = E: Suspend detection
+typedef struct _SNP_SEN_MODE_E_PACKET_t
+{
+	SNP_PHR_t	sPhr;
+	
+	u16_t		uiFwVer;			// 0x08	-	当前固件版本.
+	u8_t		ucHwVer;			// 0x0A	-	本机硬件版本.
+	u8_t		ucCfgComb;			// 0x0B	-	??? configuration combination.
+									//			定义本机可实现的功能:
+									//			0x03:	检测器.
+									//			0x07:	中继器.
+									//			0x08:	检测器仅'Stop Bar'模式.
+	u8_t		ucVolt;				// 0x0C	-	检测器的电池电压测量值, 参考'rf_hal.c RfGetBattVolt'.
+	u8_t		ucChannel;			// 0x0D	-	本机的RF通道.
+	u16_t		uiRpId;				// 0x0E	-	中继器的'RF-ID', 由最底层RP自动添加.
+} SNP_SEN_MODE_E_PACKET_t;
+
+// Mode = G: Sends magnetic signature data
+typedef struct _SNP_SEN_MODE_G_PACKET_t
+{
+	SNP_PHR_t	sPhr;
+	
+	u16_t		uiSignalX;			// 0x08	-	
+	u16_t		uiSignalY;			// 0x0A	-	
+	u16_t		uiSignalZ;			// 0x0C	-	
+	u16_t		uiTemp;				// 0x0E	-	检测器当前温度值, 标称值(REF=2.8V): Tc = (uiTemp - 1442.025)/5.191875.
+	u16_t		uiZero;				// 0x10	-	= 0.
+	u16_t		uiRpId;				// 0x12	-	中继器的'RF-ID', 由最底层RP自动添加.
+} SNP_SEN_MODE_G_PACKET_t;
+
+// Mode = D: Sends raw X, Y, and Z axes magnetic Sensor data
+// Mode = F: Combination of Mode B and Mode D - sends raw X, Y, and Z axes magnetic Sensor
+//			 data while a vehicle is near the Sensor
+typedef struct _SNP_SEN_MODE_DF_PACKET_t
+{
+	SNP_PHR_t	sPhr;
+	
+	u16_t		uiBaseX;			// 0x08 -	第一个数据, 作为后续数据的基值.
+	u16_t		uiBaseY;			// 0x0A -	
+	u16_t		uiBaseZ;			// 0x0C -	
+
+	u8_t		aucDeltaX[15u];		// 0x0E -	与基值的偏差值.
+	u8_t		aucDeltaY[15u];		// 0x1D -	
+	u8_t		aucDeltaZ[15u];		// 0x2C -	
+} SNP_SEN_MODE_DF_PACKET_t;
+
+
+// v4.0新增两个无线数据包结构.
+
+// Mode = C: Vehicle re-identification mode for arterial travel time applications
+typedef struct _SNP_SEN_MODE_C_PACKET_t
+{
+	SNP_PHR_t	sPhr;
+	u16_t		uiStamp;			// 0x08 -	本数据包中最早的峰谷值的时间戳, 或'EMPTY_EVENT_ON/EMPTY_EVENT_OFF'.
+	u16_t		uiMaxAbsX;			// 0x0A -	本数据包中X轴的最大绝对值.
+	u16_t		uiMaxAbsY;			// 0x0C -	本数据包中Y轴的最大绝对值. 另外, 当这个数据=0xFFFF时,
+									//			指示发生了内部错误: 没有足够的时间来处理采集到的数据.
+	u16_t		uiMaxAbsZ;			// 0x0E -	本数据包中Z轴的最大绝对值.
+	u16_t		auiMsg[20u];		// 0x10 -	模式C检测到的信息, 第一个数据是最迟的信息.
+	// 本模式使用三个轴(XYZ)数据来获得峰谷值等变化信息.
+	// 信息编码格式:
+	//	1:	00xaaabccccccccc
+	//      \/|\_/|\_______/
+	//      | | | |    +-----	c: 9bits, 检测到事件时与本数据包中最早的峰谷值的间隔, 单位: 7.8125ms(1/128秒).
+	//      | | | |----------	b: =1: 'ON'事件, =0: 'OFF'事件.
+	//      | | +------------	a: 3bits, 间隔中不足7.8125ms的部分, 单位: 0.9765625ms(1/1024秒).
+	//		| +--------------	x: 1bit, 无关.
+	//      +----------------	检测到事件.
+#define C_MSG_EVENT					0
+#define C_EVENT_OFF					0
+#define C_EVENT_ON					1u
+	//	2:	aabbbbbccccccccc
+	//      \/\___/\_______/
+	//      |   |      +-----	c: 9bits, 当前峰谷值与本数据包中最早的峰谷值的间隔, 单位: 7.8125ms(1/128秒).
+	//      |   +------------	b: 5bits, 当前峰谷值与本数据包中相同轴的最大绝对值的比例(-16...15).
+	//		|					计算式:	16*Peak/(MaxAbs+1), 计算结果向-INF取整.
+	//		|							Peak:	当前峰谷值数据.
+	//		|							MaxAbs:	本数据包中相同轴的最大绝对值.
+	//      +----------------	a: 2bits, 检测到峰谷值的轴(XYZ).
+#define C_MSG_PEAK_X				0x4000u
+#define C_MSG_PEAK_Y				0x8000u
+#define C_MSG_PEAK_Z				0xC000u
+#define C_PEAK_SCALE_BM				0x1Fu
+#define C_PEAK_SCALE_BP				9u
+#define C_INTERVAL_BM				0x1FFu
+
+} SNP_SEN_MODE_C_PACKET_t;
+typedef SNP_SEN_MODE_C_PACKET_t		C_PACKET_t;
+
+
+// Mode = H: High accuracy speed mode
+typedef struct _SNP_SEN_MODE_H_PACKET_t
+{
+	SNP_PHR_t	sPhr;
+	u16_t		auiMsg[16u];		// 0x08 -	模式H检测到的信息.
+	// 本模式只使用Z轴数据来获得峰谷值等变化信息.
+	// 信息编码格式:
+	//	1:	1aaabbbcccdddeee
+	//      |\_/\_/\_/\_/\_/
+	//      | +--+--+--+--+--	3bits, 当前峰谷值与本数据包中的最大绝对值的比例(-4...3), a在前.
+	//		|					计算式:	4*Peak/(MaxAbs+1), 计算结果向-INF取整.
+	//		|							Peak:	当前峰谷值数据.
+	//		|							MaxAbs:	本数据包中的最大绝对值.
+	//      +----------------	检测到的峰谷值信息.
+#define H_MSG_PEAK					0x8000u
+#define H_PEAK_SCALE_BM				0x07u
+	//	2:	000abbbbbbcccccc
+	//      \_/|\____/\____/
+	//       | |   |     +---	c: 6bits, 与前一个峰谷值的间隔, 单位: 3.90625ms(1/256秒).
+	//       | |   +---------	b: 同c, b在前.
+	//       | +-------------	a: =1:	b为检测到峰值时的间隔信息, =0: b为检测到谷值时的间隔信息.
+	//       +---------------	峰谷值的间隔信息.
+	//	3:	011abbbbbbxxxxxx
+	//      \_/|\____/\____/
+	//       | |   |     +---	x: 6bits, 无关.
+	//       | |   +---------	b: 6bits, 与前一个峰谷值的间隔, 单位: 3.90625ms(1/256秒).
+	//       | +-------------	a: =1:	b为检测到峰值时的间隔信息, =0: b为检测到谷值时的间隔信息.
+	//       +---------------	峰谷值的间隔信息, 仅一个信息.
+#define H_MSG_INTERVAL				0
+#define H_MSG_INTERVAL_1			0x6000u
+#define H_PEAK_BOTTOM				0
+#define H_PEAK_TOP					0x40u
+#define H_INTERVAL_BM				0x3Fu
+	//	4:	001aaaaabbbbbbbb
+	//      \_/\___________/
+	//       |       +-------	时间戳信息, a: 5bits, 秒数, b: 8bits, 单位: 3.90625ms(1/256秒).
+	//       +---------------	事件'ON'信息.
+#define H_MSG_EVENT_ON				0x2000u
+#define H_EMPTY_EVENT_ON			0x3FFFu
+	//	5:	010aaaaabbbbbbbb
+	//      \_/\___________/
+	//       |       +-------	时间戳信息, a: 5bits, 秒数, b: 8bits, 单位: 3.90625ms(1/256秒).
+	//       +---------------	事件'OFF'信息.
+#define H_MSG_EVENT_OFF				0x4000u
+#define H_EMPTY_EVENT_OFF			0x5FFFu
+
+} SNP_SEN_MODE_H_PACKET_t;
+typedef SNP_SEN_MODE_H_PACKET_t		H_PACKET_t;
+
+
+//
+// Êý¾Ý½á¹¹ºÍÀàÐÍ¶¨Òå.
+//--------------------------------------------------
+typedef struct _SIMPLE_MESSAGE_PHR_t //¼òÒ×ÏûÏ¢Í·
+{
+  u8_t ucMagic;   
+       #define    SNCMAGIC         0xCAu
+       #define    SNNMAGIC         0xFEu
+	     #define    SN1MAGIC				 0xCCu
+			 #define		EXT_MAGIC        0XCBu
+	
+			 #define    GPRS_TIME_STAT_DATA 0X4a                //¶¨Ê±×´Ì¬Êý¾Ý
+			 #define    GPRS_TIME_FLOW_SIMPLE_DATA 0X44					//¶¨Ê±Á÷Á¿£¨¼ò»¯£©Êý¾Ý
+			 #define    GPRS_TIME_FLOW_FULL_DATA 0X48							//¶¨Ê±Á÷Á¿£¨ÍêÕû£©Êý¾Ý
+			 #define    GPRS_HISTORY_STAT_DATA 0X77							//ÀúÊ·×´Ì¬Êý¾Ý
+			 #define    GPRS_HISTORY_FLOW_SIMPLE_DATA 0X56			//ÀúÊ·Á÷Á¿£¨¼ò»¯£©Êý¾Ý
+			 #define    GPRS_HISTORY_FLOW_FULL_DATA 0X5c				//ÀúÊ·Á÷Á¿£¨ÍêÕû£©Êý¾Ý
+			 #define    GPRS_CROSSING_DATA         0X71
+	
+			 #define    GPRS_REALTIME_CAR        0x49    //ÊµÊ±³µÁ¾Êý¾Ý
+			 #define    GPRS_SINGLE_CMD1       0x76   
+			 #define    GPRS_SINGLE_CMD2       0x5a   
+			 #define    GPRS_SINGLE_CMD3       0x5d   
+
+			 #define    GPRS_56_CMD1           0X01
+			 #define    GPRS_56_CMD2          0Xad	
+			 #define    GPRS_56_CMD3           0Xae	
+			 #define    GPRS_56_CMD4           0Xee	
+	
+	
+  u8_t ucMsgType;
+	//----------------------SN1--add  new type by suojf  2013.05.09
+			 #define    SN1_N1SYNC_NO          0x01u
+			 #define    SN1_RSSI_RSP_NO  			 0x80u
+			 #define    SN1_N1DotTable_REQ_NO  0x81u
+			 #define    SN1_N1DotTable_RSP_NO  0x82u
+			 #define    SN1_N1SysTable_RSP_NO  0x83u
+  //----------------------SNC
+       #define    CONNECTREQ              0x01u
+       #define    CONNECTRSP              0x02u
+       #define    DISCONNECTREQ           0x03u
+  //------------------------SNN
+       #define    SNN_STATUS_RSP_NO             0x01u
+       #define    SNN_CONFIGURE_REQ_NO          0x02u
+       #define    SNN_CONFIGURE_RSP_NO          0x03u
+       #define    SNN_DATA_MSG_NO               0x04u
+       #define    SNN_DATA_REQ_NO               0x0Au
+       #define    SNN_DATA_RSP_NO               0x0Bu
+       #define    SNN_DOT_COMMAND_REQ_NO        0x0Cu
+       #define    SNN_DOT_COMMAND_RSP_NO        0x0Du
+       #define    SNN_SAVE_REQ_NO               0x12u
+       #define    SNN_SAVE_RSP_NO               0x13u
+       #define    SNN_REBOOT_REQ_NO             0x14u
+       #define    SNN_REBOOT_RSP_NO             0x15u
+       #define    SNN_GO_REQ_NO                 0x16u
+       #define    SNN_GO_RSP_NO                 0x17u
+       #define    SNN_ALIVE_REQ_NO              0x18
+       #define    SNN_ALIVE_RSP_NO              0x19u
+       #define    SNN_SEND_REQ_NO               0x1Au
+       #define    SNN_SEND_RSP_NO               0x1Bu
+       #define    SNN_TABLE_OP_REQ_NO           0x1Cu
+       #define    SNN_TABLE_OP_RSP_NO           0x1Du
+       #define    SNN_TABLE_OP_MSG_NO           0x1E
+       #define    SNN_TABLE_MODIFIED_MSG_NO     0x1Fu
+       #define    SNN_MASTER170_CH_MSG_NO       0x20u
+       #define    SNN_MASTER170_CH_RSP_NO       0x21u
+       #define    SNN_MASTER170_CARD_MSG_NO     0x22u
+       #define    SNN_MASTER170_CARD_RSP_NO     0x23u
+       #define    SNN_DOT_SETID_COMMAND_REQ_NO  0x24u
+       #define    SNN_DOT_SETID_COMMAND_RSP_NO  0x25u
+
+			 #define 		EXT_AP_PARAM									 0X01U
+			 #define 		EXT_AP_ID_VERSION							 0X02U
+			 #define 		EXT_AP_SET_SENSOR							 0X03U
+		   #define    EXT_AP_UPDATA                  0x04U
+		   #define    EXT_AP_BACKUP                  0x05U
+		   #define    EXT_AP_GET_BACKUP              0x06U	
+			 #define    EXT_AP_DTU_DATA		             0x07U		
+			 
+  u8_t ucLength;
+ }SIMPLE_MESSAGE_PHR_t;
+
+
+typedef struct _BASE_MESSAGE_PHR_t//»ù±¾ÏûÏ¢Í·
+{
+  SIMPLE_MESSAGE_PHR_t    sPhr;
+  u8_t                    ucTarget;
+  u8_t                    ucSource;
+              #define   SOURCEID 0xFF
+  u8_t                    ucSeq;
+  u8_t                    ucVersion;
+              #define   VERSION 0x01u
+  u8_t                    ucReserve;
+    
+}BASE_MESSAGE_PHR_t;
+
+//----------------------------------------------
+
+typedef struct _SNNDATA_MESSAGE//SNNDATAÏûÏ¢
+{
+  BASE_MESSAGE_PHR_t      basePhr;
+  u32_t                   lTimestamp;
+  u16_t                   sTime;
+  u8_t                    ucLqi;
+  u8_t                    ucRssi;
+  u8_t                    ucOffset;
+  u8_t                    ucLoadData[0x40];
+}SNNDATA_MESSAGE;
+
+
+
+
+
+typedef struct __SNP_SYNC_PACKET_t
+{
+	SNP_PHR_t	sPhr;
+	
+	u8_t		ucCurSecNr;		// 0x8	-	Ö÷»úµ±Ç°Ê±¿Ì(Ãë) mod 'ucSecPeriod'  10
+	u8_t		ucSecPeriod;	// 0x9	-	Ñ­»·ÖÜÆÚ(Ãë)  1E=30
+	u8_t		ucSlotLength;	// 0xA	-	Ê±Ï¶³¤¶È, µ¥Î»: 1 / 32.768KHz.  40
+	u8_t		ucCtrlBm;		// 0xB	-	  46
+		#define SNP_CTRL_BM_NSEC			( 1u<<0u )	// BIT.0 = 0:	ÔÚ'Ãë'±ß½ç.
+		#define SNP_CTRL_BM_BIT1			( 1u<<1u )	// BIT.1 = 1:	???  UNMANAGED
+		#define SNP_CTRL_BM_REQ_ACK			( 1u<<2u )	// BIT.2 = 1:	¼ì²âÆ÷ÆÚÍûAPÓ¦´ð,
+														//				²Î¿¼'Page 170: Enabling Expectation of Acknowledgments'.
+		#define SNP_CTRL_BM_FAST_CAL		( 1u<<3u )	// BIT.3 = 1:	Ê¼ÖÕÊ¹ÓÃ¿ìËÙÐ£×¼Í¬²½Îó²î.
+														//		 = 0:	ÔÊÐíÊ¹ÓÃ½ÏÂýÐ£×¼Í¬²½Îó²î.
+		#define SNP_CTRL_BM_BIT4			( 1u<<4u )	// BIT.4 = 1:	ÔÊÐí´óµÄÍ¬²½Îó²î.
+		#define SNP_CTRL_BM_TANDEM			( 1u<<5u )	// BIT.5 = 1:	ÓÐ´®Áª(Tandem)µÄRepeater.
+														//		 = 0:	Ã»ÓÐ´®Áª(Tandem)µÄRepeater.
+		#define SNP_CTRL_BM_ACK				( 1u<<6u )	// BIT.6 = 1:Ê¹ÓÃg_sStatePacket×÷ÎªÓ¦´ð.
+										//= 0:	Ê¹ÓÃg_sRpAckPacket»òg_sUfAckPacket×÷ÎªÓ¦´ð.
+	union{
+		u16_t	uiRemainSlot;	// 0xC	-	²»ÔÚ'Ãë'±ß½çÊ±µÄÍ¬²½°üÓÃ, ½âÎöÎª: µ±Ç°'Ãë'ÖÜÆÚÄÚÊ£ÓàµÄÊ±Ï¶Êý.
+		u16_t	uiPathInfo;	// 0xC	-	ÔÚ'Ãë'±ß½çÊ±µÄÍ¬²½°üÓÃ, ½âÎöÎª:
+								//µÍ×Ö½ÚÎª´ÓÖ÷»ú·¢³öÍ¬²½/Êý¾Ý°üµ½ÊÕµ½ÏÂ¶ËÉè±¸µÄÓ¦´ð°üËù¶îÍâÔö¼ÓµÄÊ±Ï¶Êý,
+								//¸ß×Ö½ÚÎª´ÓÖ÷»ú·¢³öÍ¬²½/Êý¾Ý°üµ½ÏÂ¶ËÉè±¸ÊÕµ½Õâ¸ö°üËù¼ä¸ôµÄÊ±Ï¶Êý.
+	
+     }Second_Edge;
+	u16_t		uiChangeCnt;	// 0xE	-	±¾»úÓëAPÖ®¼äµÄÉè±¸µÄÎÞÏß²ÎÊý¸ü¸Ä¼ÆÊý, ÓÃÓÚÐ£ÑéºóÐøÍ¬²½°üµÄÎÞÏßÂ·¾¶»òÎÞÏß²ÎÊýµÄÒ»ÖÂÐÔ.
+	u16_t		uiDestId;		// 0x10	-	Óë±¾»úIDÆ¥ÅäÊ±, Ö´ÐÐ'uiCmd'¶¨ÒåµÄÃüÁî.
+	u16_t		uiCmd;			// 0x12	-	µÍËÄÎ»¶¨ÒåÃüÁîÀàÐÍ, ÆäÓàÎ»ÓÒÒÆËÄÎ»×÷ÎªÃüÁî²ÎÊý.
+		#define SNP_CMD_TOTAL				( 16u )
+		#define SNP_CMD_bm					( SNP_CMD_TOTAL - 1u )
+		#define SNP_CMD_PARM_bp				( 4u )
+		#define SNP_CMD_PARM_bm				( ~SNP_CMD_bm )
+		#define SNP_CMD_LED_CTRL			( 1u )		// 
+		#define SNP_CMD_SEN_RECAL			( 2u )		// 
+		#define SNP_CMD_SEN_SET_MODE		( 3u )		// 
+		#define SNP_CMD_EXIT_UF				( 4u )		// 
+		#define SNP_CMD_SET_SLOT			( 5u )		// 
+		#define SNP_CMD_CHANGE_CFG			( 6u )		// 
+		#define SNP_CMD_ENTER_UF			( 7u )		// 
+		#define SNP_CMD_SEN_SET_MISC		( 8u )		// 
+		 //  BAND (9)
+  u8_t SystemParameter[6];         //Ê±¼ä²Û·ÖµµÎªµÚ1ºÍµÚ6¸ö×Ö½Ú
+} SNP_SYNC_PACKET_tt;
+
+
+
+
+//============================================================================================//
+
+//
+// 函数原型.
+//
+
+
+#endif	// #ifndef _SNP_H_
+
+//======================================= End of snp.h =======================================//

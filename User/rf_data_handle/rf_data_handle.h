@@ -193,6 +193,7 @@ typedef struct _sensor_stat
 	int8_t rssi;
 	int8_t luzl;
 	uint8_t slot;
+	int8_t avg_rssi1;
 	int32_t avg_rssi;
 	int32_t avg_volt;
 	uint8_t lost_rate;

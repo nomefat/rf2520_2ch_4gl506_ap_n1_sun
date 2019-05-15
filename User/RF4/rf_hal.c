@@ -440,14 +440,14 @@ RF_init_stat_typedef rf_init(SPI_HandleTypeDef* hspi)
 	
 	CC2520_Reg_Init(hspi);
 	
-	stat = CC2520_get_reg(hspi,CC2520_TXPOWER,     data_1);
-  stat = CC2520_get_reg(hspi,CC2520_TXCTRL,      data_2);
-  stat = CC2520_get_reg(hspi,CC2520_AGCCTRL1,    data_3);
-  stat = CC2520_get_reg(hspi,CC2520_GPIOCTRL4,   data_4);                                                                        
-  stat = CC2520_get_reg(hspi,CC2520_GPIOCTRL5,   data_5);
-	sprintf(gprs_debug_buff,"rf_reg: %X %X %X %X %X \r\n",data_1[2],data_2[2],data_3[2],data_4[2],data_5[2]);
-	copy_string_to_double_buff(gprs_debug_buff);	
-	
+//	stat = CC2520_get_reg(hspi,CC2520_TXPOWER,     data_1);
+//  stat = CC2520_get_reg(hspi,CC2520_TXCTRL,      data_2);
+//  stat = CC2520_get_reg(hspi,CC2520_AGCCTRL1,    data_3);
+//  stat = CC2520_get_reg(hspi,CC2520_GPIOCTRL4,   data_4);                                                                        
+//  stat = CC2520_get_reg(hspi,CC2520_GPIOCTRL5,   data_5);
+//	sprintf(gprs_debug_buff,"rf_reg: %X %X %X %X %X \r\n",data_1[2],data_2[2],data_3[2],data_4[2],data_5[2]);
+//	copy_string_to_double_buff(gprs_debug_buff);	
+//	
 	CC2520_send_cmd(hspi,CC2520_INS_SRFOFF);
 	
 	CC2520_send_cmd(hspi,CC2520_INS_SRXON);	

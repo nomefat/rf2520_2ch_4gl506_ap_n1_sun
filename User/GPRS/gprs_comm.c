@@ -47,7 +47,7 @@ uint8_t gprs_data_buff[GPRS_DATA_BUFF_LENGH];   //用于从队列中取出完整的一条命令
 struct_gprs_one_cmd gprs_one_cmd;
 
 
-
+extern uint8_t ap_param_write_flash_flag;
 extern struct_systerm_info systerm_info;
 
 
@@ -542,6 +542,7 @@ int gprs_str_cmd_handle(char *pstr)
 					break;
 				sys_flash_param.ap_param.gps_n_e[0] = gprs_str_to_int(&gprs_cmd_param[0][0]);
 				sys_flash_param.ap_param.gps_n_e[1] = gprs_str_to_int(&gprs_cmd_param[2][0]);
+				ap_param_write_flash_flag = 1;
 				gps_date.date = (gprs_cmd_param[4][0]-'0')*10 + gprs_cmd_param[4][1]-'0';
 				gps_date.month = (gprs_cmd_param[4][2]-'0')*10 + gprs_cmd_param[4][3]-'0';
 				gps_date.year = (gprs_cmd_param[4][6]-'0')*10 + gprs_cmd_param[4][7]-'0';
@@ -993,6 +994,7 @@ void gprs_main_call()
 	int i = 0;
 	static int get_link_stat = 0;
 	static int which_client = 0;
+	static int sec_gps_no_read = 0;
 	int delay = 0;
 	gprs_data_handle();
 	
@@ -1105,6 +1107,7 @@ void gprs_main_call()
 			gprs_stat.now_who_rx = 0;
 			gprs_stat.now_who_working = -1;
 			gprs_stat.send_steps = 0;
+			gps_read_flag = 0;
 			for(i=0;i<2;i++)
 			{
 				gprs_stat.con_client[i].connect_fail_times = 0;
@@ -1175,7 +1178,17 @@ void gprs_main_call()
 			gps_read_flag++; 
 			gprs_uart_send_string(AT_CMD_4GAT_CGPSINFO_5); 		
 			return;		
-		}		
+		}	
+		if(gps_read_flag == 2) //已经完成过一次打开GPS动作 这里计时 用作下一次开启GPS  24小时打开一次
+		{
+			sec_gps_no_read++;
+			if((rtc_time.Hours == 3 && rtc_time.Minutes == 3 && rtc_time.Seconds == 3) || sec_gps_no_read > (24*3600+100))
+			{
+				sec_gps_no_read = 0;
+				gps_read_flag = 0; 
+				
+			}	
+		}			
 		if(gprs_stat.netopen == 0)                            //打开网络
 		{
 			timeout++;

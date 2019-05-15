@@ -47,6 +47,7 @@ typedef struct _gprs_4g_heart_packet
 			uint32_t id2;
 			uint32_t id3;
 		}chip_id;
+		uint16_t battery_mv;
 		uint16_t crc;
 }struct_gprs_4g_heart_packet;
 

@@ -645,17 +645,17 @@ void rf_rx_data_handle(int index)
 			make_ack(ptr->ucSerNr);
 			
 			if(ptr->ucType == SNP_PACKET_TYPE_EVENT) //事件包
-				insert_sensor_event(ptr_s_event,rf_rx_buff[index][rf_rx_buff[index][0]-1] - 76,(rf_rx_buff[index][rf_rx_buff[index][0]] & 0x7F),slot);
+				insert_sensor_event(ptr_s_event,(int8_t)rf_rx_buff[index][rf_rx_buff[index][0]-1] - 76,(rf_rx_buff[index][rf_rx_buff[index][0]] & 0x7F),slot);
 			
 			if(ptr->ucType == SNP_PACKET_TYPE_SEN_STATE || ptr->ucType == SNP_PACKET_TYPE_SEN_UF_STATE)
-				insert_sensor_stat_packet(ptr_s_stat,rf_rx_buff[index][rf_rx_buff[index][0]-1] - 76,(rf_rx_buff[index][rf_rx_buff[index][0]] & 0x7F),slot);
+				insert_sensor_stat_packet(ptr_s_stat,(int8_t)rf_rx_buff[index][rf_rx_buff[index][0]-1] - 76,(rf_rx_buff[index][rf_rx_buff[index][0]] & 0x7F),slot);
 
 			if(ptr->ucType == SNP_PACKET_TYPE_RP_STATE || ptr->ucType == SNP_PACKET_TYPE_RP_UF_STATE)
-				insert_rp_stat_packet(ptr_rp_stat,rf_rx_buff[index][rf_rx_buff[index][0]-1] - 76,(rf_rx_buff[index][rf_rx_buff[index][0]] & 0x7F),slot);			
+				insert_rp_stat_packet(ptr_rp_stat,(int8_t)rf_rx_buff[index][rf_rx_buff[index][0]-1] - 76,(rf_rx_buff[index][rf_rx_buff[index][0]] & 0x7F),slot);			
 			
 			if(ptr->ucType == SNP_PACKET_TYPE_EVENT) //事件包
 			{
-				debug_insert_sensor_event(ptr->uiDevId,ptr->ucSerNr,rf_rx_buff[index][rf_rx_buff[index][0]-1] - 76,slot,(ptr_s_event->slot)>>8);
+				debug_insert_sensor_event(ptr->uiDevId,ptr->ucSerNr,(int8_t)rf_rx_buff[index][rf_rx_buff[index][0]-1] - 76,slot,(ptr_s_event->slot)>>8);
 #if (AP_VERSION   == 0X8888)					
 				if(ptr_s_event->asEvent->uiAll == 0xFF7F)
 					auto_jiaozhun_sensor_add_sensorid(ptr->uiDevId);

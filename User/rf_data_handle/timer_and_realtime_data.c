@@ -49,7 +49,7 @@ extern int8_t who_dtu_ack_r ;
 extern struct_lane_to_sensor_info_and_result lane_to_sensor_info_and_result; 
 extern RTC_HandleTypeDef hrtc;
 extern char gprs_debug_buff[];
-
+extern int32_t adc_getvalue_enable;
 
 
 uint16_t qianfang_lane_to_his_lane(uint8_t lane);
@@ -551,6 +551,12 @@ void sensor_data_and_stat_timer_task()
 	HAL_RTC_GetTime(&hrtc,&rtc_time,RTC_FORMAT_BIN);	
 	HAL_RTC_GetDate(&hrtc,&rtc_date,RTC_FORMAT_BIN);
 	
+	if(rtc_time.Hours == sys_flash_param.global_cfg_param.dev_reset_hour && 
+		rtc_time.Minutes == sys_flash_param.global_cfg_param.dev_reset_min && 
+		sys_flash_param.global_cfg_param.dev_reset_switch > 0              &&
+		systerm_info.slot > 100000)
+		HAL_NVIC_SystemReset();
+	
 	sec = rtc_time.Minutes*60 + rtc_time.Seconds;
 	
 //	sprintf(gprs_debug_buff,"rtc: %d:%d:%d\r\n",rtc_time.Hours,rtc_time.Minutes,rtc_time.Seconds);
@@ -558,6 +564,7 @@ void sensor_data_and_stat_timer_task()
 	if(sec%sys_flash_param.global_cfg_param.data_save_timer_time == 0 && sec_last != sec)
 	{
 		sec_last = sec;
+		adc_getvalue_enable = 1;
 		make_timer_statistics_data(sys_flash_param.global_cfg_param.data_save_timer_time*1000);
 		
 		for(i=0;i<2;i++)

@@ -65,6 +65,8 @@
 #define SPI5_rf_cs_GPIO_Port GPIOF
 #define SPI5_rf_power_onoff_Pin GPIO_PIN_10
 #define SPI5_rf_power_onoff_GPIO_Port GPIOF
+#define adc_enable_Pin GPIO_PIN_2
+#define adc_enable_GPIO_Port GPIOH
 #define SPI1_rf_cs_Pin GPIO_PIN_4
 #define SPI1_rf_cs_GPIO_Port GPIOA
 #define SPI1_rf_io_vreg_Pin GPIO_PIN_4

@@ -22,6 +22,8 @@
 "ap_rf4\stm32f4xx_hal_crc.o"
 "ap_rf4\stm32f4xx_hal_rtc_ex.o"
 "ap_rf4\stm32f4xx_hal_rtc.o"
+"ap_rf4\stm32f4xx_hal_adc_ex.o"
+"ap_rf4\stm32f4xx_hal_adc.o"
 "ap_rf4\stm32f4xx_hal_msp.o"
 "ap_rf4\stm32f4xx_it.o"
 "ap_rf4\main.o"

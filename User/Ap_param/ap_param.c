@@ -34,12 +34,13 @@ void init_ap_param(void)
 	sys_flash_param.ap_param.ap_syn_param[0] = 0x10;
 	
 	sys_flash_param.global_cfg_param.server_ip[0] = (219 | (239<<8) | (83<<16) | (74<<24));
-	sys_flash_param.global_cfg_param.server_port[0] = 40005;
+	sys_flash_param.global_cfg_param.server_port[0] = 40010;
 	
 	sys_flash_param.global_cfg_param.data_save_timer_time = 300;
 	sys_flash_param.global_cfg_param.dev_reset_hour = 4;
 	sys_flash_param.global_cfg_param.dev_reset_min = 1;
 	sys_flash_param.global_cfg_param.dev_reset_switch = 0;
+	sys_flash_param.global_cfg_param.m_usCarLimit = 420;
 	sys_flash_param.global_cfg_param.m_arDelimiter[0] = 5500;
 	sys_flash_param.global_cfg_param.m_arDelimiter[1] = 8000;
 	sys_flash_param.global_cfg_param.m_arDelimiter[2] = 12000;

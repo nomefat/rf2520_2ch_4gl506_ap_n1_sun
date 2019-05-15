@@ -16,7 +16,7 @@
 int8_t who_dtu_ack_r = -1;
 
 uint32_t  timer_reboot_system ;
-
+uint16_t battery_mv;
 uint8_t cfg_lane_num = 0;
 
 extern uint8_t rtdata_send_buff[2][1450];   //数据发送buff
@@ -34,6 +34,12 @@ extern RTC_HandleTypeDef hrtc;
 extern struct_update_s_rp_manage update_s_rp_manage ;
 extern char gprs_debug_buff[256];
 extern struct_gprs_stat gprs_stat;
+extern int gprs_print_rx_tx_data_enable;
+extern ADC_HandleTypeDef hadc1;
+
+
+
+
 
 void rev_4g_server_ap_firmware(int32_t whitch_client,uint8_t *pdata, uint32_t len);
 void rev_4g_server_rp_firmware(int32_t whitch_client,uint8_t *pdata, uint32_t len);
@@ -244,6 +250,8 @@ int32_t send_4g_heart_pacekt(int32_t whitch_client)
 	
 	p_packet->client0_send_bytes = gprs_stat.con_client[0].tx_len;
 	p_packet->client1_send_bytes = gprs_stat.con_client[1].tx_len;	
+	p_packet->battery_mv = battery_mv*3300/4096;
+	
 	
 	crc = crc16(0,(uint8_t *)&p_packet->ap_id,size-6);
 	p_packet->crc = 0;
@@ -413,9 +421,9 @@ int32_t send_4g_timer_stat_sensor(int32_t whitch_client)
 		if(lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_id != 0)
 		{
 			p_sensor_stat[p_packet->sensor_num].sensor_id = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_id;
-			p_sensor_stat[p_packet->sensor_num].battay = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.sensor_stat_packet.ucVolt;
+			p_sensor_stat[p_packet->sensor_num].battay = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.sensor_stat_packet.ucVolt*20;
 			p_sensor_stat[p_packet->sensor_num].lost_bit = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.lost_rate;
-			p_sensor_stat[p_packet->sensor_num].rssi = (int8_t)lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.avg_rssi - 76;
+			p_sensor_stat[p_packet->sensor_num].rssi = (int8_t)lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.avg_rssi1;
 			p_sensor_stat[p_packet->sensor_num].packet_count = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.packet_count;
 			
 			if(p_sensor_stat[p_packet->sensor_num].lost_bit < 10)
@@ -437,9 +445,9 @@ int32_t send_4g_timer_stat_sensor(int32_t whitch_client)
 		if(lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_id != 0)
 		{
 			p_sensor_stat[p_packet->sensor_num].sensor_id = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_id;
-			p_sensor_stat[p_packet->sensor_num].battay = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.sensor_stat_packet.ucVolt;
+			p_sensor_stat[p_packet->sensor_num].battay = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.sensor_stat_packet.ucVolt*20;
 			p_sensor_stat[p_packet->sensor_num].lost_bit = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.lost_rate;
-			p_sensor_stat[p_packet->sensor_num].rssi = (int8_t)lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.avg_rssi - 76;
+			p_sensor_stat[p_packet->sensor_num].rssi = (int8_t)lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.avg_rssi1;
 			p_sensor_stat[p_packet->sensor_num].packet_count = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.packet_count;
 			
 			if(p_sensor_stat[p_packet->sensor_num].lost_bit < 10)
@@ -468,7 +476,7 @@ int32_t send_4g_timer_stat_sensor(int32_t whitch_client)
 		if(lane_to_sensor_info_and_result.rp_cfg_and_stat[index].rp_id != 0)
 		{
 			p_rp_stat[*rp_num].rp_id = lane_to_sensor_info_and_result.rp_cfg_and_stat[index].rp_id;
-			p_rp_stat[*rp_num].battay = lane_to_sensor_info_and_result.rp_cfg_and_stat[index].rp_stat.rp_stat_packet.ucVolt;
+			p_rp_stat[*rp_num].battay = lane_to_sensor_info_and_result.rp_cfg_and_stat[index].rp_stat.rp_stat_packet.ucVolt*20;
 			p_rp_stat[*rp_num].rssi = (int8_t)lane_to_sensor_info_and_result.rp_cfg_and_stat[index].rp_stat.rp_stat_packet.uiRssi - 76;
 			if(systerm_info.slot - lane_to_sensor_info_and_result.lane_and_sensor[index].after.last_packet_time_slot > 7200*512)
 				p_rp_stat[*rp_num].stat = 4;	
@@ -550,7 +558,7 @@ int32_t send_4g_timer_stat_qianfang(int32_t whitch_client)
 			p_sensor_stat[p_packet->sensor_num].sensor_id = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_id;
 			p_sensor_stat[p_packet->sensor_num].battay = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.sensor_stat_packet.ucVolt;
 			p_sensor_stat[p_packet->sensor_num].lost_bit = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.lost_rate;
-			p_sensor_stat[p_packet->sensor_num].rssi = (int8_t)lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.avg_rssi - 76;
+			p_sensor_stat[p_packet->sensor_num].rssi = (int8_t)lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.avg_rssi;
 			p_sensor_stat[p_packet->sensor_num].packet_count = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.packet_count;
 			
 			if(p_sensor_stat[p_packet->sensor_num].lost_bit < 10)
@@ -574,7 +582,7 @@ int32_t send_4g_timer_stat_qianfang(int32_t whitch_client)
 			p_sensor_stat[p_packet->sensor_num].sensor_id = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_id;
 			p_sensor_stat[p_packet->sensor_num].battay = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.sensor_stat_packet.ucVolt;
 			p_sensor_stat[p_packet->sensor_num].lost_bit = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.lost_rate;
-			p_sensor_stat[p_packet->sensor_num].rssi = (int8_t)lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.avg_rssi - 76;
+			p_sensor_stat[p_packet->sensor_num].rssi = (int8_t)lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.avg_rssi;
 			p_sensor_stat[p_packet->sensor_num].packet_count = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.packet_count;
 			
 			if(p_sensor_stat[p_packet->sensor_num].lost_bit < 10)
@@ -619,6 +627,7 @@ void load_sys_param_to_use_table()
 	lane_to_sensor_info_and_result.cfg_rp_num = 0;
 	
 	cfg_lane_num = 0;
+	memset(&lane_to_sensor_info_and_result.lane_and_sensor[0],0,sizeof(lane_to_sensor_info_and_result.lane_and_sensor));
 	for(i=0;i<sys_flash_param.sensor_num;i++)
 	{
 		index = sys_flash_param.sensor[i].sensor_param1.m_ucLaneId & 0x1f;
@@ -660,7 +669,7 @@ void load_sys_param_to_use_table()
 		
 		
 	}
-	
+	memset(&lane_to_sensor_info_and_result.rp_cfg_and_stat[0],0,sizeof(lane_to_sensor_info_and_result.rp_cfg_and_stat));
 	for(i=0;i<sys_flash_param.rp_num;i++)
 	{
 		if(i>=16)
@@ -876,10 +885,11 @@ int32_t server_4g_data_hanle(int32_t whitch_client)
 work:	
 		crc = (phead->data[phead->len]<<8) + phead->data[phead->len+1];
 		crc1 = crc16(0,(uint8_t *)&phead->ap_id,phead->len+6);
-		
-		sprintf(gprs_debug_buff,"4g_hanle_data: len=%d %d\r\n",index,crc-crc1);
-		copy_string_to_double_buff(gprs_debug_buff);
-					
+		if(gprs_print_rx_tx_data_enable)
+		{
+			sprintf(gprs_debug_buff,"4g_hanle_data: len=%d %d\r\n",index,crc-crc1);
+			copy_string_to_double_buff(gprs_debug_buff);
+		}
 		if(crc == crc1)  //crc校验
 		{		
 			switch(phead->data[0]) //cmd 1
@@ -1683,6 +1693,11 @@ void gprs_4g_heart()
 }
 
 
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+	battery_mv = HAL_ADC_GetValue(&hadc1);
+	HAL_ADC_Stop(&hadc1);
+}
 
 void gprs_4g_task_poll()
 {

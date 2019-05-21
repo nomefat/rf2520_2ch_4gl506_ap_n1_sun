@@ -540,8 +540,8 @@ int gprs_str_cmd_handle(char *pstr)
 			case _GPS_CMD_CGPSINFO:
 				if(gprs_cmd_param[0][0] == 0)
 					break;
-				sys_flash_param.ap_param.gps_n_e[0] = gprs_str_to_int(&gprs_cmd_param[0][0]);
-				sys_flash_param.ap_param.gps_n_e[1] = gprs_str_to_int(&gprs_cmd_param[2][0]);
+				sscanf(&gprs_cmd_param[0][0],"%f",&sys_flash_param.ap_param.gps_n_e[0]);
+				sscanf(&gprs_cmd_param[2][0],"%f",&sys_flash_param.ap_param.gps_n_e[1]);
 				ap_param_write_flash_flag = 1;
 				gps_date.date = (gprs_cmd_param[4][0]-'0')*10 + gprs_cmd_param[4][1]-'0';
 				gps_date.month = (gprs_cmd_param[4][2]-'0')*10 + gprs_cmd_param[4][3]-'0';
@@ -1182,7 +1182,7 @@ void gprs_main_call()
 		if(gps_read_flag == 2) //已经完成过一次打开GPS动作 这里计时 用作下一次开启GPS  24小时打开一次
 		{
 			sec_gps_no_read++;
-			if((rtc_time.Hours == 3 && rtc_time.Minutes == 3 && rtc_time.Seconds == 3) || sec_gps_no_read > (24*3600+100))
+			if((rtc_time.Hours == 3 && rtc_time.Minutes == 3 && rtc_time.Seconds == 3) || sec_gps_no_read > (3600+100))
 			{
 				sec_gps_no_read = 0;
 				gps_read_flag = 0; 

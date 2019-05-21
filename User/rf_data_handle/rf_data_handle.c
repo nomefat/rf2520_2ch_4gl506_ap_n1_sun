@@ -321,11 +321,11 @@ int insert_sensor_event(SNP_SEN_MODE_B_PACKET_t *ptr_s_event,int8_t rssi,uint8_t
 
 			p_ls->sensor_event.all_rev_event_count++;
 			p_ls->sensor_event.last_event_packet_seq = ptr_s_event->sPhr.ucSerNr;
-			p_ls->sensor_event.all_lost_event_count += calc_event_count - get_event_count;
+			p_ls->sensor_event.all_lost_event_count += (calc_event_count - get_event_count)>0?(calc_event_count - get_event_count):0;
 		
 			p_ls->sensor_stat.avg_rssi += (int32_t)rssi;
 			p_ls->sensor_stat.timer_packet_num ++;   //应该接收到的包数
-			p_ls->sensor_stat.timer_lost_packet_num += calc_event_count - get_event_count;  //记录丢了多少包
+			p_ls->sensor_stat.timer_lost_packet_num += (calc_event_count - get_event_count)>0?(calc_event_count - get_event_count):0;  //记录丢了多少包
 			
 			for(i=0;i<get_event_count;i++)
 			{
@@ -449,8 +449,8 @@ if (print_event_handle_guocheng == 1)	{
 								p_events->car_count++;
 								p_events->off_to_on_timeslot = calc_event_time_ms(p_events->event[i-1],p_events->event[i]);
 if (print_event_handle_guocheng == 1)	{									
-								sprintf(event_handle_debug_buff,"EH:%04X OFF->[%d %d.%d]  - ON->[%d %d.%d] = %d 下一个ON对比满足分车阈值\r\n",sid,p_events->event[i].event.blIsOn,p_events->event[i].event.bmSec,p_events->event[i].event.bmMs,
-								p_events->event[i-1].event.blIsOn,p_events->event[i-1].event.bmSec,p_events->event[i-1].event.bmMs,p_events->off_to_on_timeslot);
+								sprintf(event_handle_debug_buff,"EH:%04X OFF->[%d %d.%d]%04X  - ON->[%d %d.%d]%04X = %d 下一个ON对比满足分车阈值\r\n",sid,p_events->event[i].event.blIsOn,p_events->event[i].event.bmSec,p_events->event[i].event.bmMs,p_events->event[i].event.uiAll,
+								p_events->event[i-1].event.blIsOn,p_events->event[i-1].event.bmSec,p_events->event[i-1].event.bmMs,p_events->event[i-1].event.uiAll,p_events->off_to_on_timeslot);
 								copy_string_to_double_buff(event_handle_debug_buff);	
 }								
 								memcpy(&p_events->event[0],&p_events->event[1],(p_events->event_count-1)*sizeof(p_events->event[0]));
@@ -485,9 +485,9 @@ if (print_event_handle_guocheng == 1)	{
 								p_events->car_count++;
 								p_events->off_to_on_timeslot = calc_event_time_ms(p_events->event[i-1],p_events->event[i]);
 if (print_event_handle_guocheng == 1)	{	
-								sprintf(event_handle_debug_buff,"EH:%04X OFF->[%d %d.%d]  - ON->[%d %d.%d] = %d 超时满足分车阈值\r\n",sid,p_events->event[i].event.blIsOn,p_events->event[i].event.bmSec,p_events->event[i].event.bmMs,
-											p_events->event[i-1].event.blIsOn,p_events->event[i-1].event.bmSec,p_events->event[i-1].event.bmMs,p_events->off_to_on_timeslot);
-								copy_string_to_double_buff(event_handle_debug_buff);
+							sprintf(event_handle_debug_buff,"EH:%04X OFF->[%d %d.%d]%04X  - ON->[%d %d.%d]%04X = %d 超过分车阈值\r\n",sid,p_events->event[i].event.blIsOn,p_events->event[i].event.bmSec,p_events->event[i].event.bmMs,p_events->event[i].event.uiAll,
+								p_events->event[i-1].event.blIsOn,p_events->event[i-1].event.bmSec,p_events->event[i-1].event.bmMs,p_events->event[i-1].event.uiAll,p_events->off_to_on_timeslot);
+						copy_string_to_double_buff(event_handle_debug_buff);
 }							
 								memcpy(&p_events->event[0],&p_events->event[1],(p_events->event_count-1)*sizeof(p_events->event[0]));
 								p_events->event_count--;
@@ -590,7 +590,7 @@ void sensor_event_and_stat_hanle()
 		if(lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_event.has_event_no_handle || 
 			lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_event.event_count >1)   //前置sensor
 		{
-			on_or_off = calc_sensor_event(&lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_event,lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_id);
+			on_or_off = calc_sensor_event(&lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_event,lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_id);
 				
 			if(on_or_off == CAR_STAT_ON)  //用ON事件测测速
 			{//计算车头时距
@@ -825,12 +825,15 @@ void make_timer_statistics_data(uint32_t timer_time_ms)
 		{
 				
 			lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.avg_rssi1 = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.avg_rssi/(int32_t)lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.timer_packet_num; 
-			lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.lost_rate = 
-			lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.timer_lost_packet_num*100/lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.timer_packet_num;
+			if(lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.avg_rssi1 == 0)
+				lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.avg_rssi1 = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.rssi;
+			lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.lost_rate = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.timer_lost_packet_num*100/(lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.timer_lost_packet_num+lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.timer_packet_num);
 			lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.packet_count = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.timer_packet_num;
 			lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.timer_packet_num = 0; 
 			lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.timer_lost_packet_num = 0;
 			lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.avg_rssi = 0;
+
+			memset(&lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1],0,sizeof(lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1]));
 			
 			lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1].car_len_count[0] = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].car_len_count[0];
 			lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1].car_len_count[1] = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].car_len_count[1];		
@@ -841,10 +844,18 @@ void make_timer_statistics_data(uint32_t timer_time_ms)
 			//计算一些平均数
 			if(lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].car_len_count[5] != 0)
 			{
-				lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1].avg_car_car_time_distance /=lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].car_len_count[5];
-				lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1].avg_car_head_time_distance /=lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].car_len_count[5];	
-				lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1].avg_car_length /=lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].car_len_count[5];	
-				lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1].avg_speed /=lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].car_len_count[5];	
+				lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1].avg_car_car_time_distance =
+				lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].avg_car_car_time_distance/lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].car_len_count[5]/1000;
+				lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1].avg_car_head_time_distance =
+				lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].avg_car_head_time_distance/lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].car_len_count[5]/1000;	
+				lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1].avg_car_length =
+				lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].avg_car_length/lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].car_len_count[5];	
+				lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1].avg_speed = 
+				lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].avg_speed/lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].car_len_count[5]*36/10000;	
+			
+				lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1].max_speed = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].max_speed*36/10000;
+				lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1].min_speed = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].min_speed*36/10000;
+											
 			}
 			//计算占有率
 			if(lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.now_on_off == CAR_STAT_ON)
@@ -875,9 +886,10 @@ void make_timer_statistics_data(uint32_t timer_time_ms)
 		if(lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_id != 0)
 		{
 			lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.avg_rssi1 = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.avg_rssi/(int32_t)lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.timer_packet_num; 
-			lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.lost_rate = 
-			lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.timer_lost_packet_num*100/lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.timer_packet_num;
-			lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.packet_count = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.timer_packet_num;			
+			if(lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.avg_rssi1 == 0)
+				lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.avg_rssi1 = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.rssi;			
+			lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.lost_rate = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.timer_lost_packet_num*100/(lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.timer_lost_packet_num+lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.timer_packet_num);
+			lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.packet_count = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.timer_lost_packet_num;			
 			lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.timer_packet_num = 0; 		
 			lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.timer_lost_packet_num = 0;		
 			lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.avg_rssi = 0;

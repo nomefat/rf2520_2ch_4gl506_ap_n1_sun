@@ -198,7 +198,7 @@
           <Type>0</Type>
           <LineNumber>492</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134301642</Address>
+          <Address>134303036</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -265,6 +265,16 @@
           <count>10</count>
           <WinNumber>1</WinNumber>
           <ItemText>ap_param_write_flash_flag</ItemText>
+        </Ww>
+        <Ww>
+          <count>11</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>battery_mv</ItemText>
+        </Ww>
+        <Ww>
+          <count>12</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>gprs_cmd_param</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>

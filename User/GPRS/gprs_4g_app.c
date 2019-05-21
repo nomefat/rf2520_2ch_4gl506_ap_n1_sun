@@ -355,7 +355,7 @@ int32_t send_4g_timer_data_sensor(int32_t whitch_client)
 		p_data[p_packet->sensor_num].max_speed = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1].max_speed;
 		p_data[p_packet->sensor_num].min_speed = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1].min_speed;
 		p_data[p_packet->sensor_num].occupancy = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1].occupancy;
-		p_data[p_packet->sensor_num].sensor_id = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_id;
+		p_data[p_packet->sensor_num].sensor_id = (lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_id>>8) | (lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_id<<8);
 		p_packet->sensor_num++;
 	}
 	
@@ -420,7 +420,7 @@ int32_t send_4g_timer_stat_sensor(int32_t whitch_client)
 	{
 		if(lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_id != 0)
 		{
-			p_sensor_stat[p_packet->sensor_num].sensor_id = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_id;
+			p_sensor_stat[p_packet->sensor_num].sensor_id = (lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_id>>8) | (lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_id<<8);
 			p_sensor_stat[p_packet->sensor_num].battay = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.sensor_stat_packet.ucVolt*20;
 			p_sensor_stat[p_packet->sensor_num].lost_bit = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.lost_rate;
 			p_sensor_stat[p_packet->sensor_num].rssi = (int8_t)lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.avg_rssi1;
@@ -444,7 +444,7 @@ int32_t send_4g_timer_stat_sensor(int32_t whitch_client)
 	
 		if(lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_id != 0)
 		{
-			p_sensor_stat[p_packet->sensor_num].sensor_id = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_id;
+			p_sensor_stat[p_packet->sensor_num].sensor_id = (lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_id>>8) | (lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_id<<8);
 			p_sensor_stat[p_packet->sensor_num].battay = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.sensor_stat_packet.ucVolt*20;
 			p_sensor_stat[p_packet->sensor_num].lost_bit = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.lost_rate;
 			p_sensor_stat[p_packet->sensor_num].rssi = (int8_t)lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_stat.avg_rssi1;
@@ -475,9 +475,9 @@ int32_t send_4g_timer_stat_sensor(int32_t whitch_client)
 	{
 		if(lane_to_sensor_info_and_result.rp_cfg_and_stat[index].rp_id != 0)
 		{
-			p_rp_stat[*rp_num].rp_id = lane_to_sensor_info_and_result.rp_cfg_and_stat[index].rp_id;
+			p_rp_stat[*rp_num].rp_id = (lane_to_sensor_info_and_result.rp_cfg_and_stat[index].rp_id>>8) | (lane_to_sensor_info_and_result.rp_cfg_and_stat[index].rp_id<<8);
 			p_rp_stat[*rp_num].battay = lane_to_sensor_info_and_result.rp_cfg_and_stat[index].rp_stat.rp_stat_packet.ucVolt*20;
-			p_rp_stat[*rp_num].rssi = (int8_t)lane_to_sensor_info_and_result.rp_cfg_and_stat[index].rp_stat.rp_stat_packet.uiRssi - 76;
+			p_rp_stat[*rp_num].rssi = (int8_t)lane_to_sensor_info_and_result.rp_cfg_and_stat[index].rp_stat.rssi;
 			if(systerm_info.slot - lane_to_sensor_info_and_result.lane_and_sensor[index].after.last_packet_time_slot > 7200*512)
 				p_rp_stat[*rp_num].stat = 4;	
 			else if(systerm_info.slot - lane_to_sensor_info_and_result.lane_and_sensor[index].after.last_packet_time_slot > 1800*512)
@@ -492,7 +492,8 @@ int32_t send_4g_timer_stat_sensor(int32_t whitch_client)
 	}
 	
 	p_ap_stat = (struct_ap_stat_timer *)(&p_rp_stat[*rp_num].rp_id);
-	
+	p_ap_stat->a1 = battery_mv*6;
+	p_ap_stat->a1 = (battery_mv*6)>>8;
 	
 	
 	size = sizeof(struct_to_server_head) + p_packet->sensor_num*sizeof(struct_sensor_stat_timer) + 1 + (*rp_num)*sizeof(struct_rp_stat_timer) + 
@@ -710,7 +711,7 @@ int32_t rev_sys_param(void *pdata,uint16_t len)
 		init_realtime_data_queue(1);
 	
 	sys_flash_param.ap_param.ap_id = pd->ap_param.ap_id;
-	memcpy(&sys_flash_param.ap_param.band_id,&pd->ap_param.band_id,18+sizeof(struct_global_cfg_param));
+	memcpy(&sys_flash_param.ap_param.band_id,&pd->ap_param.band_id,22+sizeof(struct_global_cfg_param));
 	memcpy(&sys_flash_param.sensor[0],&(pd->sensor[0]),pd->sensor_num*sizeof(s_sensor_pram));
 	memcpy(&sys_flash_param.rp[0],(void *)((uint32_t)&(pd->sensor[0])+pd->sensor_num*sizeof(s_sensor_pram)),pd->rp_num*sizeof(s_rp_pram));
 		
@@ -898,6 +899,10 @@ work:
 					send_heart_flag[whitch_client].send_time = systerm_info.slot;
 					send_heart_flag[whitch_client].send_flag = 0;
 					send_heart_flag[whitch_client].send_times = 0;
+					break;
+				case 2:
+						if(phead->len == 1)
+							HAL_NVIC_SystemReset();
 					break;
 				case CMD1_4G_SYS_PARAM_TABLE:      //系统参数命令
 					switch(phead->data[1])  //cmd 2

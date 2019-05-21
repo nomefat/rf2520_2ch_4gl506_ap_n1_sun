@@ -464,7 +464,7 @@ void rf_fast_init()
 	uint8_t data_[3];
 	HAL_StatusTypeDef stat;
 	SPI_HandleTypeDef* hspi;
-	uint8_t ch[4] = {0,0,0,0};
+	uint8_t ch[4] = {16,16,16,16};
 	uint8_t *p_chanel = (uint8_t *)&sys_flash_param.ap_param.ap_channel;
 	
 	static int index = 0;

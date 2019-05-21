@@ -9,7 +9,7 @@
 
 //#define AP_VERSION  0X8888                 //作为工装使用   增加自动校准sensor
 //#define AP_VERSION  0X8889               //打印接收syn的工装  可以设置rssi过滤
-#define AP_VERSION  0X0222
+#define AP_VERSION  0X9224
 
 
 
@@ -55,7 +55,7 @@ typedef struct _ap_param{
 	uint16_t band_id;	
 	uint32_t ap_channel;
 	uint8_t ap_syn_param[6];
-	uint16_t gps_n_e[2];
+	float gps_n_e[2];
 	
 }struct_ap_param;
 

@@ -35,7 +35,7 @@ typedef struct _gprs_4g_heart_packet
 		uint32_t ap_id;
 		uint16_t len;
 		uint16_t cmd;                         //命令字
-		uint16_t gps_n_e[2];                  //gps
+		float gps_n_e[2];                  //gps
 		struct _gps_date rtc_date_time;                    //rtc时间
 		uint32_t ap_live_time;                //AP存活时间
 		uint32_t client0_send_bytes;

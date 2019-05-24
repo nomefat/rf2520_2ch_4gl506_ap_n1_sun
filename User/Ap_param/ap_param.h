@@ -9,7 +9,7 @@
 
 //#define AP_VERSION  0X8888                 //作为工装使用   增加自动校准sensor
 //#define AP_VERSION  0X8889               //打印接收syn的工装  可以设置rssi过滤
-#define AP_VERSION  0X9224
+#define AP_VERSION  0X9227
 
 
 

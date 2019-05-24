@@ -690,8 +690,11 @@ if (print_one_car == 1)
 				if(lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.car_length > sys_flash_param.global_cfg_param.m_arDelimiter[3])
 					lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].car_len_count[4]++;				
 				//占有率， 结算的时候需要/总时间    处理一下结算时候还是ON的情况
-				lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].occupancy += lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.off_to_on_timeslot;
-				
+				if(lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.off_to_on_timeslot > get_sec_to_timer_begin()*1000)
+					lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].occupancy += get_sec_to_timer_begin()*1000;
+				else
+					lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].occupancy += lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.off_to_on_timeslot;
+					
 				
 /*  计算统计数据 */	
 
@@ -880,6 +883,8 @@ void make_timer_statistics_data(uint32_t timer_time_ms)
 				lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].occupancy /= timer_time_ms;	
 				lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1].occupancy = lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0].occupancy ;			
 			}
+			if(lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1].occupancy>100)
+				lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[1].occupancy = 100;
 			//清除临时变量
 			memset(&lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0],0,sizeof(lane_to_sensor_info_and_result.lane_and_sensor[index].after.sensor_event.t[0]));
 		}
@@ -889,7 +894,7 @@ void make_timer_statistics_data(uint32_t timer_time_ms)
 			if(lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.avg_rssi1 == 0)
 				lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.avg_rssi1 = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.rssi;			
 			lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.lost_rate = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.timer_lost_packet_num*100/(lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.timer_lost_packet_num+lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.timer_packet_num);
-			lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.packet_count = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.timer_lost_packet_num;			
+			lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.packet_count = lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.timer_packet_num;			
 			lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.timer_packet_num = 0; 		
 			lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.timer_lost_packet_num = 0;		
 			lane_to_sensor_info_and_result.lane_and_sensor[index].before.sensor_stat.avg_rssi = 0;
@@ -922,7 +927,7 @@ void make_list_sensor_debug_data()
 	memset(list_sensor_debug_buff[line],' ',LINE_MAX);
 	list_sensor_debug_buff[line][LINE_MAX-1] = '\n';
 	list_sensor_debug_buff[line][LINE_MAX-2] = '\r';
-	sprintf(list_sensor_debug_buff[line],"033sunap:version=%d.%d apid=%08X Bandid=%04X GPSN=%d.%d ch=%d %d %d %d serverip=%d.%d.%d.%d port=%d live=%d",
+	sprintf(list_sensor_debug_buff[line],"033sunap:version=%d.%d apid=%08X Bandid=%04X GPSN=%f:%f ch=%d %d %d %d serverip=%d.%d.%d.%d port=%d live=%d",
 	AP_VERSION>>8,AP_VERSION&0xff,sys_flash_param.ap_param.ap_id,sys_flash_param.ap_param.band_id,sys_flash_param.ap_param.gps_n_e[0], sys_flash_param.ap_param.gps_n_e[1],(sys_flash_param.ap_param.ap_channel>>0)&0XFF,(sys_flash_param.ap_param.ap_channel>>8)&0XFF,(sys_flash_param.ap_param.ap_channel>>16)&0XFF
 	,(sys_flash_param.ap_param.ap_channel>>24)&0XFF,sys_flash_param.global_cfg_param.server_ip[0]&0xff,(sys_flash_param.global_cfg_param.server_ip[0]>>8)&0xff,
 	(sys_flash_param.global_cfg_param.server_ip[0]>>16)&0xff,sys_flash_param.global_cfg_param.server_ip[0]>>24,sys_flash_param.global_cfg_param.server_port[0],systerm_info.slot/512);

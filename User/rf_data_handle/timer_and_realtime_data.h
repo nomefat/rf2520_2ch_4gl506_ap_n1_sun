@@ -187,7 +187,7 @@ void poll_to_4g_realtime_data();
 
 void sensor_data_and_stat_timer_task();
 
-
+uint32_t get_sec_to_timer_begin();
 int32_t init_realtime_data_queue(int32_t whitch_client);
 
 

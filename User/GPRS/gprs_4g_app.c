@@ -250,7 +250,7 @@ int32_t send_4g_heart_pacekt(int32_t whitch_client)
 	
 	p_packet->client0_send_bytes = gprs_stat.con_client[0].tx_len;
 	p_packet->client1_send_bytes = gprs_stat.con_client[1].tx_len;	
-	p_packet->battery_mv = battery_mv*3300/4096;
+	p_packet->battery_mv = battery_mv*6*3300/4096;
 	
 	
 	crc = crc16(0,(uint8_t *)&p_packet->ap_id,size-6);
@@ -492,8 +492,9 @@ int32_t send_4g_timer_stat_sensor(int32_t whitch_client)
 	}
 	
 	p_ap_stat = (struct_ap_stat_timer *)(&p_rp_stat[*rp_num].rp_id);
-	p_ap_stat->a1 = battery_mv*6;
-	p_ap_stat->a1 = (battery_mv*6)>>8;
+	p_ap_stat->ap_stat = battery_mv*6*3300/4096;
+	p_ap_stat->a1 = 0;
+	p_ap_stat->a2 = 0;
 	
 	
 	size = sizeof(struct_to_server_head) + p_packet->sensor_num*sizeof(struct_sensor_stat_timer) + 1 + (*rp_num)*sizeof(struct_rp_stat_timer) + 

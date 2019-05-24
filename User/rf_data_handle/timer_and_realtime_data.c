@@ -528,6 +528,22 @@ void write_realtime_data_to_queue(uint8_t lane)
 	
 }
 
+ 
+/**************************************************
+Func:
+			获取当前时间到定时统计时间起点过了多少秒   用来
+		解决车辆ON事件横跨两个定时时间段
+
+
+***************************************************/
+uint32_t get_sec_to_timer_begin()
+{
+
+	uint32_t sec = rtc_time.Minutes*60 + rtc_time.Seconds;
+
+	return (sec%sys_flash_param.global_cfg_param.data_save_timer_time);
+
+}
 
  
 /**************************************************

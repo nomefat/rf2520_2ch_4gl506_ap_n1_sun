@@ -55,14 +55,14 @@ void uart_from_gprs_idle_callback()
 
 void grps_power_off()
 {
-	HAL_GPIO_WritePin(GPRS_pwoer_onoff_GPIO_Port,GPRS_pwoer_onoff_Pin,GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(G4_power_onoff_GPIO_Port,GPRS_pwoer_onoff_Pin,GPIO_PIN_RESET);
+	//HAL_GPIO_WritePin(GPRS_pwoer_onoff_GPIO_Port,GPRS_pwoer_onoff_Pin,GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(G4_power_onoff_GPIO_Port,G4_power_onoff_Pin,GPIO_PIN_RESET);
 }
 
 void grps_power_on()
 {
-	HAL_GPIO_WritePin(G4_power_onoff_GPIO_Port,GPRS_pwoer_onoff_Pin,GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPRS_pwoer_onoff_GPIO_Port,GPRS_pwoer_onoff_Pin,GPIO_PIN_SET);
+	HAL_GPIO_WritePin(G4_power_onoff_GPIO_Port,G4_power_onoff_Pin,GPIO_PIN_SET);
+	//HAL_GPIO_WritePin(GPRS_pwoer_onoff_GPIO_Port,GPRS_pwoer_onoff_Pin,GPIO_PIN_SET);
 	HAL_GPIO_WritePin(G4_on_off_GPIO_Port,G4_on_off_Pin,GPIO_PIN_RESET);
 	
 

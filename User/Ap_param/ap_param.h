@@ -9,7 +9,7 @@
 
 //#define AP_VERSION  0X8888                 //作为工装使用   增加自动校准sensor
 //#define AP_VERSION  0X8889               //打印接收syn的工装  可以设置rssi过滤
-#define AP_VERSION  0X9227
+#define AP_VERSION  0X9228
 
 
 
@@ -38,7 +38,7 @@
 //011b 增加控制同步包发送的指令
 //011c 出厂默认通道改为31
 
-
+//0X9228   修正4G模块电源无法关闭的bug
 
 
 #pragma pack(1)

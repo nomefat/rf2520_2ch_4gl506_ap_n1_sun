@@ -3,7 +3,7 @@
 <title>Static Call Graph - [AP_RF4\AP_RF4.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image AP_RF4\AP_RF4.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060300: Last Updated: Thu May 23 14:37:18 2019
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060300: Last Updated: Mon Jun 10 14:35:55 2019
 <BR><P>
 <H3>Maximum Stack Usage =        624 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -2457,7 +2457,7 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[4]"></a>get_gprs_stat</STRONG> (Thumb, 14 bytes, Stack size 8 bytes, debug_uart.o(i.get_gprs_stat))
-<BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = get_gprs_stat &rArr; make_gprs_stat &rArr; __2sprintf
+<BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = get_gprs_stat &rArr; make_gprs_stat &rArr; __2sprintf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[18e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;make_gprs_stat
 <LI><a href="#[f9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;copy_string_to_double_buff
@@ -2718,7 +2718,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[17d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gprs_str_cmd_handle
 </UL>
 
-<P><STRONG><a name="[1a6]"></a>grps_power_off</STRONG> (Thumb, 28 bytes, Stack size 8 bytes, gprs_hal.o(i.grps_power_off))
+<P><STRONG><a name="[1a6]"></a>grps_power_off</STRONG> (Thumb, 16 bytes, Stack size 8 bytes, gprs_hal.o(i.grps_power_off))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = grps_power_off
 </UL>
 <BR>[Calls]<UL><LI><a href="#[b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
@@ -2726,7 +2726,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[1a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gprs_main_call
 </UL>
 
-<P><STRONG><a name="[1a7]"></a>grps_power_on</STRONG> (Thumb, 34 bytes, Stack size 8 bytes, gprs_hal.o(i.grps_power_on))
+<P><STRONG><a name="[1a7]"></a>grps_power_on</STRONG> (Thumb, 24 bytes, Stack size 8 bytes, gprs_hal.o(i.grps_power_on))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = grps_power_on
 </UL>
 <BR>[Calls]<UL><LI><a href="#[b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
@@ -2867,8 +2867,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[1e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rf_rx_data_handle
 </UL>
 
-<P><STRONG><a name="[18e]"></a>make_gprs_stat</STRONG> (Thumb, 44 bytes, Stack size 16 bytes, gprs_comm.o(i.make_gprs_stat))
-<BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = make_gprs_stat &rArr; __2sprintf
+<P><STRONG><a name="[18e]"></a>make_gprs_stat</STRONG> (Thumb, 54 bytes, Stack size 24 bytes, gprs_comm.o(i.make_gprs_stat))
+<BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = make_gprs_stat &rArr; __2sprintf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
 </UL>

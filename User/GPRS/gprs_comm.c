@@ -982,7 +982,7 @@ void restart_gprs_4g_mode()
 	
 }
 
-
+int fuck = 1;
 
 /*
 	说明： main主循环调用
@@ -1093,7 +1093,11 @@ void gprs_main_call()
 	if(gprs_sec_flag >= 1) //1sec进入下面一次
 	{	
 		gprs_sec_flag = 0;
-	
+//		if(fuck == 0)
+//			grps_power_off();
+//		else
+//			grps_power_on();
+		
 		if(gprs_stat.reboot_flag == GPRS_REBOOT_SETP0) //关GSM电源
 		{
 			grps_power_off();
@@ -1409,7 +1413,7 @@ void send_gprs_200_()
 
 char* make_gprs_stat()
 {
-	sprintf(gprs_debug_buff,"gprs:ati=%d creg=%d cgreg=%d tcp=%d csq=%d\r\n",gprs_stat.ati_ok,gprs_stat.creg_ok,gprs_stat.cgreg_ok,gprs_stat.con_client[0].connect_ok,gprs_stat.csq);
+	sprintf(gprs_debug_buff,"gprs:ati=%d creg=%d cgreg=%d tcp=%d:%d csq=%d\r\n",gprs_stat.ati_ok,gprs_stat.creg_ok,gprs_stat.cgreg_ok,gprs_stat.con_client[0].connect_ok,gprs_stat.con_client[1].connect_ok,gprs_stat.csq);
 	return gprs_debug_buff;
 }
 
